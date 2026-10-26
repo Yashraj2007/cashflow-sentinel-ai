@@ -1,0 +1,408 @@
+# CASHFLOW SENTINEL AI — INCREMENTAL FRONTEND REFACTOR PROMPT
+
+Act as a senior React architect, UX designer, and fintech product engineer. You are working on the EXISTING CashFlow Sentinel AI project supplied in the opened repository/ZIP. Refactor the current frontend into a simple, guided workflow for a small-business owner. Do not rebuild it blindly from scratch and do not add every possible dashboard feature at once.
+
+## 1. FIRST: INSPECT THE EXISTING PROJECT
+
+Before editing:
+1. Read `README.md`, `package.json`, the Vite configuration, `src/main.jsx`, `src/App.jsx`, `src/app/App.jsx`, `src/context/AppContext.jsx`, the existing pages, services, utilities, demo data, and styles.
+2. Identify the actual application entry point and remove duplicate/unused app entry files only after confirming they are not imported.
+3. Create a short implementation plan and list the files that will change.
+4. Run the current app/build if possible and note existing errors.
+5. Preserve useful existing calculations, demo records, reusable components, and styling. Avoid replacing working logic with hardcoded mock values.
+
+## 2. REQUIRED TECH STACK AND STRICT RESTRICTIONS
+
+Use:
+- React with functional components and JSX
+- Vite
+- JavaScript only
+- Plain CSS or SCSS (prefer the project's existing plain CSS/SCSS approach)
+- React Router for routes if routing is needed
+- React Context/useReducer/useState for shared state
+- Existing chart library only where useful
+- Lucide React for icons
+- `fetch` or Axios for future API integration
+
+Strictly do NOT use:
+- TypeScript or TSX
+- Next.js
+- Tailwind CSS, Tailwind directives, utility classes, `tailwind-merge`, or Tailwind plugins
+- A Python frontend/backend
+- A new state-management library unless genuinely necessary
+- Unnecessary UI libraries or paid templates
+- Fake claims that Google authentication, ML predictions, emails, or calls are live when they are not connected
+
+Clean up `package.json` and config files so they match the actual JavaScript + Vite + plain CSS project. Remove unused TypeScript/Tailwind/Next dependencies and configuration only after verifying they are not required. Use a JavaScript Vite config such as `vite.config.js`. Keep the lockfile consistent with the selected package manager. Ensure `npm install`, `npm run dev`, and `npm run build` work.
+
+## 3. PRODUCT GOAL: MAKE IT SIMPLE FOR BUSINESS OWNERS
+
+The current frontend has many navigation options and can overwhelm users. Redesign it around one guided workflow and a small number of primary sections. Use simple labels, clear next steps, progressive disclosure, and concise explanations. Do not put every metric and tool on the first dashboard.
+
+Primary navigation:
+1. Overview
+2. Customers
+3. Suppliers
+4. Bank & Invoices
+5. Expenses
+6. New Deal
+7. Deal Impact Checker
+8. Scenario Lab
+9. Alerts & Reminders
+10. Reports
+11. Settings
+
+Group secondary information under relevant pages rather than creating more top-level navigation. Make the interface responsive and accessible. Keep the existing CashFlow Sentinel AI brand, professional fintech look, INR formatting, and useful existing components where appropriate.
+
+## 4. REQUIRED USER JOURNEY — BUILD IN THIS ORDER
+
+Implement incrementally in the order below. After each phase, run the app and build, fix errors, and only then continue. Do not implement all phases in one enormous component.
+
+### PHASE 1 — ONBOARDING AND BUSINESS PROFILE
+
+First-time user flow:
+1. Welcome page with “Continue with Google”.
+2. After sign-in, create/load the user's profile.
+3. Ask a short business setup form:
+   - Business name
+   - Business type/industry
+   - Owner name
+   - Email and phone (optional if supplied by authentication)
+   - City/location
+   - Approximate opening/current cash balance
+   - Minimum cash reserve target
+   - Preferred forecast horizon
+4. Show a short completion screen and open Overview.
+
+Authentication requirements:
+- Build a clean Google sign-in UI and an auth service abstraction.
+- If no Firebase/Auth0/Google OAuth backend configuration exists, provide a clearly labelled demo sign-in mode for local testing.
+- Never pretend a real Google account was authenticated in demo mode.
+- Keep OAuth secrets out of source code. Document required environment variables and redirect URI setup for real Google authentication.
+- Protect application routes behind the auth/onboarding state.
+- Include sign-out and profile editing.
+- Persist demo onboarding state locally for testing, with a reset-demo option.
+
+### PHASE 2 — SIMPLE OVERVIEW
+
+Overview should answer only:
+- How much business cash is available now?
+- How much money is expected to come in?
+- How much money must go out soon?
+- Is a cash shortage predicted?
+- What is the next recommended action?
+
+Show:
+- Current cash balance
+- Expected receipts
+- Upcoming expenses/payments
+- Lowest projected cash balance
+- Shortage date and amount, only when supported by calculations
+- A simple forecast chart
+- Three to five urgent tasks or alerts
+- Clear “Add bank statement”, “Add customer”, “Add invoice”, and “Check a new deal” actions
+
+Use actual shared state and calculations, not separate hardcoded numbers on different pages. Explain that forecast values are estimates.
+
+### PHASE 3 — BANK STATEMENT AND DOCUMENT IMPORT
+
+Create a guided “Add financial data” workflow:
+- Upload bank statement CSV first; support a sensible CSV parser, preview, column mapping, validation, duplicate warnings, and import confirmation.
+- Provide a downloadable CSV template and example.
+- Allow PDF upload as an optional document attachment/preview. If there is no OCR/document-extraction service, do not claim to parse the PDF; ask the user to enter or confirm extracted data manually.
+- Import previous sales invoices and purchase invoices via CSV.
+- Show imported/rejected counts and row-level errors.
+- Map each bank transaction to date, description, debit, credit, balance, and optional category.
+- Detect likely duplicates without silently deleting transactions.
+- Never store banking credentials or ask for online banking passwords.
+- Clearly warn users to use synthetic data in demo mode. For production, financial documents must be handled by a secure backend, with authentication, access controls, encryption, and appropriate retention rules.
+
+### PHASE 4 — CUSTOMER MANAGEMENT
+
+Create a simple Customers page and “Add Customer” form. Each customer should support:
+- Customer/business name
+- Contact name
+- Email and phone
+- Address/city and optional GSTIN
+- Default payment terms in days
+- Total historical invoices
+- Number of on-time payments
+- Number of delayed payments
+- Average/median delay in days, when enough history exists
+- Notes and invoice/payment history
+
+Allow adding customers one by one and importing/exporting customers by CSV. Validate fields and prevent duplicate records where possible.
+
+Payment history must be based on recorded invoices and payment dates when available. If the owner manually enters summary counts, label them as owner-provided history rather than verified records. For a new customer with insufficient history, display “Not enough payment history” rather than inventing a risk score.
+
+### PHASE 5 — SUPPLIER MANAGEMENT
+
+Create a simple Suppliers page and “Add Supplier” form. Include:
+- Supplier name and contact details
+- Payment terms
+- Optional supplier category
+- Previous purchase invoices
+- Delivery promised date and actual delivery date where available
+- Number of on-time and delayed deliveries
+- Average delivery delay where sufficient history exists
+- Notes
+
+Allow CSV import/export. Clearly distinguish payment delays from delivery delays. Do not invent supplier reliability scores when there is no history.
+
+### PHASE 6 — EXPENSES AND OWNER WITHDRAWALS
+
+Create an Expenses page for:
+- Fixed monthly expenses (rent, salaries, utilities, EMI, subscriptions, etc.)
+- Amount, category, due date/day of month, recurrence, start date and optional end date
+- Variable/one-time expenses
+- Planned owner personal withdrawals, clearly classified separately from business operating expenses
+- Editing, pausing, and deleting recurring expense entries with confirmation
+
+Include recurring expenses and planned owner withdrawals in future cash-flow calculations. A personal withdrawal reduces available business cash; do not treat it as a business operating expense for profit/margin calculations. Warn the owner if a proposed withdrawal could breach the minimum cash reserve or affect upcoming obligations. Allow simulation rather than blocking the owner's decision.
+
+### PHASE 7 — DEAL IMPACT CHECKER (BEFORE ACCEPTING A NEW ORDER)
+
+This is a core differentiator. Build a guided form:
+1. Select an existing customer.
+2. Enter product/service name and quantity (optional if only total amount is known).
+3. Enter proposed selling price / total deal revenue.
+4. Enter estimated product/material cost, delivery/logistics, tax and other known costs.
+5. Enter customer payment terms and expected payment date.
+6. Enter supplier payment/production dates and any initial cash needed, if relevant.
+7. Click “Analyse Deal”.
+
+When submitted:
+- Use the selected customer's actual recorded payment history.
+- Estimate expected delay only if sufficient history exists.
+- Display the number of historical records and data sufficiency.
+- Calculate revenue, known estimated costs, gross contribution/margin (only if cost data is provided), upfront cash requirement, expected receipt date, projected cash balance, and whether a cash reserve breach is predicted.
+- Run the cash-flow calculation using the deal's proposed inflow/outflow dates and existing transactions/expenses.
+- Show a clear outcome: “Appears feasible”, “Cash-flow risk detected”, or “Not enough information”.
+- Explain why in plain language: expected customer delay, payment timing, large upfront cost, low cash reserve, etc.
+- Offer “Save as New Deal/Invoice” and “Open Scenario Lab”.
+
+ML architecture:
+- Create a clean service boundary such as `predictionService.js` that can call a future backend endpoint.
+- Do not claim a trained ML model is running if no model endpoint exists.
+- In demo mode, use a transparent baseline such as the customer's median historical delay and deterministic cash-flow calculations, and label results “Demo estimate”.
+- Return prediction metadata such as confidence/data sufficiency and explanation factors.
+- Do not make up prediction probabilities or false precision.
+
+### PHASE 8 — NEW DEAL / SALES INVOICE WORKFLOW
+
+Provide a separate “New Deal” or “Add Sales Invoice” workflow for an order the owner has accepted:
+- Select customer
+- Invoice number (generate a unique demo ID if blank)
+- Product/service description
+- Amount/selling price
+- Invoice date
+- Contractual due date
+- Expected payment date
+- Actual payment date, initially empty
+- Optional partial payment amount and payment date
+- Status: draft, unpaid, partially paid, overdue, paid
+- Notes/attachment if supported
+
+After save, the invoice/deal must appear in Sales Invoices, the customer profile, transactions/receivables, Overview, forecast and Scenario Lab where relevant. Use a single source of truth in shared state.
+
+Payment date correction:
+- Let the owner edit the expected payment date at any time.
+- When a payment actually arrives, record its actual payment date and amount; never automatically mark an invoice paid just because the expected date passes.
+- Calculate delay days as `actual payment date - contractual due date` (positive means late; zero means on time; negative means early).
+- For partial payments, record each payment separately and calculate the final settlement delay using the final payment date, while retaining individual payment history.
+- Use the recorded outcomes to update future customer history. Avoid double-counting invoice amounts or receipts.
+
+### PHASE 9 — SALES, PURCHASE INVOICES AND TRANSACTIONS
+
+Keep Sales Invoices, Purchase Invoices, and Transactions available, but simplify each page:
+- Search, filters, status, date, amount, customer/supplier, and detail view.
+- Add/edit records and record partial/full payments.
+- Import/export CSV.
+- Show due date, expected payment date, actual payment date and delay where relevant.
+- Purchase invoices must distinguish payment due dates from supplier delivery dates.
+- Transaction history should include bank imports, customer receipts, supplier payments, fixed expenses, variable expenses and owner withdrawals with a category and source.
+- Updating any record must update shared calculations everywhere.
+- Never count the same receipt or payment twice (e.g. once from a bank statement and again from an invoice payment).
+
+### PHASE 10 — SCENARIO LAB FOR UNPAID DEALS
+
+The Scenario Lab should focus on active deals/invoices whose outstanding balance is greater than zero. The owner selects an unpaid/partially paid deal, then clicks “Generate Scenario”.
+
+Generate a scenario using:
+- The selected invoice's outstanding amount and due date
+- The customer's recorded payment history
+- Expected/contractual payment dates
+- Actual past payment outcomes
+- Current and projected bank cash balance
+- Fixed expenses and owner withdrawals
+- Upcoming supplier payments and other obligations
+
+Show:
+- Baseline forecast
+- Predicted customer receipt timing and its data sufficiency
+- Whether and when a cash shortage may occur
+- Estimated shortage amount
+- Main contributing events
+- Two or more feasible actions, when available
+- The cash-flow impact of each action
+- Why each action is suggested
+- Assumptions and limitations
+
+Possible actions:
+- Draft/send a polite payment reminder
+- Request a payment-date confirmation
+- Request a partial payment or advance
+- Simulate a changed supplier payment date
+- Simulate reducing/postponing a nonessential expense
+- Compare a smaller owner withdrawal
+- Recalculate forecast after a hypothetical payment delay or partial payment
+
+Do not recommend delaying a critical supplier payment if it would create a known operational risk. Do not suggest borrowing as the default solution.
+
+### PHASE 11 — EMAIL AGENT AND AUTOMATED CALL DEMO
+
+Payment reminder email:
+- Generate a concise email using customer name, invoice number, amount outstanding, due date and a polite reminder tone.
+- Show the email subject/body and allow editing before sending.
+- Add a one-click “Send Email” action.
+- If no real backend/email provider is connected, make the action save/show a demo result labelled “Demo only — not sent”. Do not claim an email was delivered.
+- For real sending, call a secured backend endpoint connected to a configured email provider. Never expose provider API keys in frontend code.
+- Record reminder status/history: draft, scheduled, sent, failed or cancelled.
+
+Automated call:
+- Add an “Automated Call Reminder” button only as a clearly labelled demo feature unless a telephony provider/backend is configured.
+- In demo mode, play a locally supplied sample reminder recording if one exists, or show a preview of the call script; do not place a real call or claim that it did.
+- For real calls, require backend integration, explicit business-owner approval, verified recipient/consent, suitable calling hours, opt-out handling and a compliant telephony provider.
+- Keep a call log with demo/real status, timestamp, invoice and outcome.
+
+### PHASE 12 — ALERTS AND REMINDERS
+
+Keep alerts for:
+- Upcoming customer payment
+- Overdue invoice
+- Predicted cash shortage
+- Minimum cash reserve breach
+- Upcoming rent/salary/EMI/supplier bill
+- Planned owner withdrawal that risks cash availability
+- New deal cash-flow risk
+- Missing/insufficient customer payment history
+
+Every alert should include a short explanation, severity, date, related record and a next action. Allow marking read/resolved. Do not create alerts from unsupported or fabricated predictions.
+
+### PHASE 13 — REPORTS
+
+Reports should provide useful owner-level insights, not a crowded analytics page:
+- Deals analysed and accepted/rejected/at risk
+- Outstanding receivables and overdue invoices
+- Customer on-time vs delayed payment history
+- Actual versus predicted payment delay, when actual outcomes are available
+- Upcoming cash shortage date/amount
+- Fixed expenses and owner withdrawals
+- Scenario outcomes and recommended actions
+- CSV export
+
+Clearly distinguish actual values, forecasts, demo estimates and missing data. Do not claim forecast accuracy until predictions can be compared against recorded actual outcomes.
+
+## 5. STATE, DATA MODEL AND ARCHITECTURE
+
+Keep components small and avoid a giant `App.jsx`. Use a clear folder structure, for example:
+
+src/
+  app/
+  components/
+    layout/
+    common/
+    customers/
+    suppliers/
+    invoices/
+    deals/
+    scenarios/
+    alerts/
+  pages/
+  context/
+  services/
+    authService.js
+    bankImportService.js
+    customerService.js
+    invoiceService.js
+    expenseService.js
+    predictionService.js
+    forecastService.js
+    scenarioService.js
+    emailService.js
+    callService.js
+  data/
+    demoData.js
+  utils/
+    calculations.js
+    dates.js
+    currency.js
+    csv.js
+  styles/
+
+Adjust to the existing project where sensible; do not create files that are not needed.
+
+Use one shared data model for:
+- User/profile and business
+- Customers and payment history
+- Suppliers and delivery/payment history
+- Bank transactions
+- Sales and purchase invoices
+- Individual payment records
+- Recurring expenses
+- Owner withdrawals
+- Deals and deal analysis results
+- Scenarios and selected actions
+- Alerts, reminders and call logs
+
+Use stable IDs, validation, consistent date handling and integer paise for financial calculations where appropriate. Avoid duplicated records and double counting. Use localStorage only for non-sensitive demo data; do not store bank statement files, credentials, tokens or sensitive financial documents in localStorage.
+
+## 6. UX RULES
+
+- Keep the user journey guided and simple.
+- Use plain English and explain finance terms in tooltips.
+- Use one primary action per screen.
+- Show optional/advanced fields only when needed.
+- Use stepper/wizard forms for onboarding, bank import, deal analysis and scenario generation.
+- Display empty states with a clear next step.
+- Use accessible labels, keyboard navigation, visible focus and good contrast.
+- Use loading, error and success states.
+- Use INR formatting such as `₹1,50,000`.
+- Make tables responsive.
+- Do not show fake live/AI badges.
+- Clearly label demo data and demo predictions.
+- Never use colour alone to communicate risk.
+- Avoid excessive charts, crowded KPI cards and decorative widgets.
+
+## 7. TESTING AND ACCEPTANCE CRITERIA
+
+After each phase:
+1. Run `npm install` if dependencies changed.
+2. Run `npm run build`.
+3. Fix errors before continuing.
+4. Test the workflow manually at desktop and mobile widths.
+5. Confirm that state updates consistently across pages.
+
+The completed frontend must satisfy these checks:
+- Demo sign-in and onboarding work without external credentials; real Google OAuth is clearly distinguished.
+- A new customer can be added and selected in Deal Impact Checker.
+- A customer's on-time/delayed history influences the demo estimate only when sufficient data exists.
+- A deal analysis uses entered price/cost/payment terms and the current cash forecast.
+- Saving a deal creates an invoice that appears in the invoice list and customer profile.
+- Editing expected/actual payment dates updates delay statistics correctly.
+- Recording a partial/full payment updates the outstanding balance and cash forecast without duplication.
+- Fixed expenses and owner withdrawals appear in future cash forecasts.
+- Scenario Lab lists unpaid/partially paid invoices and uses the selected deal's real demo records.
+- Email/call actions clearly distinguish demo actions from real delivery.
+- Reports reflect the same shared data as Overview and invoices.
+- `npm run dev` and `npm run build` complete successfully.
+- No TypeScript, Next.js or Tailwind dependency/configuration remains.
+- No visible button is falsely presented as a working live integration.
+
+## 8. WORK IN SMALL PHASES — DO NOT OVERBUILD
+
+Implement only Phase 1 first: inspect repository, clean project configuration, and build onboarding/auth demo flow with protected routes. Run and verify the app and build. Then summarize the files changed, commands tested, limitations and the exact next phase.
+
+Do not proceed to every later phase in the same pass unless explicitly asked. The goal is a maintainable, tested application that grows one feature at a time, not another oversized and confusing frontend.
+
+Begin by inspecting the actual project files and use the existing code as the source of truth.
